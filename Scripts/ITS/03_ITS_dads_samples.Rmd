@@ -567,7 +567,7 @@ print(pval_adj)
 ```{r compile the stats}
 set.seed(1)
 # Perform PERMANOVA with interactions
-res <- adonis2(ASV_tables_bray ~ Treatment*Incubation*Soil, data = df_metadata, permutations = 9999)
+res <- adonis2(ASV_tables_bray ~ Treatment*Incubation*Soil, data = df_metadata, permutations = 9999, by="terms")
 
 # Extract data from res
 res_data <- data.frame(res)
