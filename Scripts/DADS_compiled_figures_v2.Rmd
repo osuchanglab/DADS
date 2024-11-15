@@ -46,8 +46,6 @@ dads_rps10.ps<-dads.ps
 
 load("Data/RPS10/filtered_data/dads_5asv.RData")
 dads_5asv_rps10.ps<-dads_5asv.ps
-
-
 ```
 
 ### Let's calculate alpha diversity metrics for ITS dataset
