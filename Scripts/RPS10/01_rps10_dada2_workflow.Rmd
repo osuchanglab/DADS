@@ -6,7 +6,7 @@ date: "2024-06-26"
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "~/SOD_DADS_microbiome/Data/RPS10")
+knitr::opts_knit$set(root.dir = "~/DADS/Data/RPS10")
 
 library(phyloseq); packageVersion("phyloseq")
 library(ggplot2); packageVersion("ggplot2")

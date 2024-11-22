@@ -6,7 +6,7 @@ date: "2024-06-11"
 
 ```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "~/SOD_DADS_microbiome")
+knitr::opts_knit$set(root.dir = "~/DADS")
 
 library(phyloseq); packageVersion("phyloseq")
 library(ggplot2); packageVersion("ggplot2")
@@ -32,7 +32,7 @@ taxa_filt <- taxa %>%
   mutate(across(starts_with("tax."), ~ ifelse(get(str_replace(cur_column(), "tax.", "boot.")) < 60, NA, .))) %>%
   set_names(str_replace(names(.), "tax.", ""))
 
-samdf <- read.csv("Data/RPS10/metadata_dbs/Metadata_rps10_short_mod.csv")
+samdf <- read.csv("Data/RPS10/metadata_dbs/Metadata_rps10_all.csv")
 ```
 
 ### Exploratory analysis-track reads throughout DADA2 analysis   

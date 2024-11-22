@@ -6,7 +6,7 @@ date: "2023-12-01"
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "~/SOD_DADS_microbiome")
+knitr::opts_knit$set(root.dir = "~/DADS")
 
 library(phyloseq); packageVersion("phyloseq")
 library(ggplot2); packageVersion("ggplot2")
@@ -51,7 +51,7 @@ revise_species <- function(genus, species) {
 # Apply the function to revise Species column
 taxa_filt$Species <- revise_species(taxa_filt$Genus, taxa_filt$Species)
 
-samdf <- read.csv("Data/ITS/metadata_dbs/Metadata_ITS_short_mod.csv")
+samdf <- read.csv("Data/ITS/metadata_dbs/Metadata_ITS_all.csv")
 ```
 
 
@@ -179,7 +179,6 @@ prevdf_check = apply(X = phyloseq::otu_table(dads_5asv.ps),
 prevdf_check = data.frame(Prevalence = prevdf_check,
                     TotalAbundance = taxa_sums(dads_5asv.ps),
                     tax_table(dads_5asv.ps))
-
 ```
 
 

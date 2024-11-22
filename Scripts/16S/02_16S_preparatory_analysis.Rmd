@@ -5,7 +5,7 @@ date: "2024-06-11"
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "~/SOD_DADS_microbiome")
+knitr::opts_knit$set(root.dir = "~/DADS")
 
 library(phyloseq); packageVersion("phyloseq")
 library(ggplot2); packageVersion("ggplot2")
@@ -36,7 +36,7 @@ revise_species <- function(genus, species) {
 # Apply the function to revise Species column
 taxa$Species <- revise_species(taxa$Genus, taxa$Species)
 
-samdf <- read.csv("Data/16S/metadata_dbs/Metadata_16S_short_mod.csv")
+samdf <- read.csv("Data/16S/metadata_dbs/Metadata_16S_all.csv")
 ```
 
 ### Track number of reads throughout the pipeline
