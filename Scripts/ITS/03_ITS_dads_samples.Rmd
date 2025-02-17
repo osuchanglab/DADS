@@ -6,7 +6,7 @@ date: "2024-05-21"
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "~/SOD_DADS_microbiome")
+knitr::opts_knit$set(root.dir = "~/DADS")
 library(phyloseq); packageVersion("phyloseq")
 library(ggplot2); packageVersion("ggplot2")
 library(readr); packageVersion("readr")
@@ -36,6 +36,26 @@ load("Data/ITS/filtered_data/dads_5asv.RData")
 
 filtered_read_counts<-read.csv("Data/ITS/filtered_data/ITS_subset_track_reads_dads.csv")
 summary(filtered_read_counts)
+```
+
+### Rarefaction curve 
+```{r rarefaction curve}
+### Rarefaction curve 
+otu_data <- as(otu_table(dads_5asv.ps), "matrix")
+
+S <- specnumber(otu_data) # observed number of species
+raremax <- min(rowSums(otu_data))
+
+pdf("Figures/ITS/rarefaction_curve.pdf", width = 10, height = 8)
+rarecurve(otu_data, step = 10, sample = raremax, col = "blue", cex = 0.6, label = TRUE, xlab = "Sequencing Depth", ylab = "Number of ASVs")
+dev.off()
+
+# Save the plot to a PDF
+pdf("Figures/ITS/speciesaccum_curve.pdf", width = 10, height = 8)
+asv_accum <- vegan::specaccum(otu_data, method = "exact")
+plot(asv_accum, ci.type = "poly", col = "blue", lwd = 2, ci.lty = 0, ci.col = "lightblue", xlab = "Number of samples", ylab = "Number of Filtered ASVs")
+dev.off()
+```
 ```
 
 ### Bar plot agglomerated by species-using filtered dataset and facet wrapped by treatment
@@ -83,7 +103,7 @@ abund_plot <- ggplot(ITSdata, aes(x = Sample, y = Abundance, fill = Genus)) +
 
 abund_plot
 
-ggsave("Figures/DADS/ITS/relabundance_plot_treatment_relabund_genus_dads.pdf", abund_plot, width = 22, height = 16)
+ggsave("Figures/ITS/relabundance_plot_treatment_relabund_genus_dads.pdf", abund_plot, width = 22, height = 16)
 ```
 
 ### Bar plot agglomerated by species-using filtered dataset and faceted by soil 
@@ -131,7 +151,7 @@ abund_plot <- ggplot(ITSdata, aes(x = Sample, y = Abundance, fill = Genus)) +
 
 abund_plot
 
-ggsave("Figures/DADS/ITS/relabundance_plot_soil_relabund_genus_dads.pdf", abund_plot, width = 22, height = 16)
+ggsave("Figures/ITS/relabundance_plot_soil_relabund_genus_dads.pdf", abund_plot, width = 22, height = 16)
 ```
 
 ### Bar plot agglomerated by species-using filtered dataset and faceted by incubation
@@ -179,7 +199,7 @@ abund_plot <- ggplot(ITSdata, aes(x = Sample, y = Abundance, fill = Genus)) +
 
 abund_plot
 
-ggsave("Figures/DADS/ITS/relabundance_plot_incubation_relabund_genus_dads.pdf", abund_plot, width = 22, height = 16)
+ggsave("Figures/ITS/relabundance_plot_incubation_relabund_genus_dads.pdf", abund_plot, width = 22, height = 16)
 ```
 
 ### Let's look top taxa 
@@ -194,7 +214,7 @@ ps.top40 <- transform_sample_counts(dads_5asv.ps, function(OTU) OTU/sum(OTU))
 ps.top40<- tax_glom(ps.top40, taxrank = "Species") 
 ps.top40 <- prune_taxa(top40, ps.top40)
 
-pdf("Figures/DADS/ITS/top40_species_dads.pdf", width = 34, height = 20)
+pdf("Figures/ITS/top40_species_dads.pdf", width = 34, height = 20)
 plot_bar(ps.top40, x="Sample_nameITS", fill="Species") + facet_wrap(~Treatment, scales="free_x")
 dev.off()
 
@@ -215,7 +235,7 @@ data_summed <- data %>%
   mutate(Total_Abundance = sum(Abundance)) %>%
   mutate(Percentage = 100*(Abundance / Total_Abundance))
   
-write.csv(data_summed, file="Results/DADS/ITS/mostabundanttaxa_abundance_dads_species.csv",row.names = TRUE)
+write.csv(data_summed, file="Results/ITS/mostabundanttaxa_abundance_dads_species.csv",row.names = TRUE)
 
 data <-
   dads_5asv.ps %>%
@@ -232,7 +252,7 @@ data_summed <- data %>%
   mutate(Total_Abundance = sum(Abundance)) %>%
   mutate(Percentage = 100*(Abundance / Total_Abundance))
   
-write.csv(data_summed, file="Results/DADS/ITS/mostabundanttaxa_abundance_dads_genus.csv",row.names = TRUE)
+write.csv(data_summed, file="Results/ITS/mostabundanttaxa_abundance_dads_genus.csv",row.names = TRUE)
 
 data1 <-
   dads_5asv.ps %>%
@@ -247,7 +267,7 @@ data_summed1 <- data1 %>%
   summarise(Abundance = sum(Abundance),
             Prevalence = n_distinct(Sample)) 
 
-write.csv(data_summed1, file="Results/DADS/ITS/mostabundanttaxa_relativeabundance_untreatedtreated_dads.csv",row.names = TRUE)
+write.csv(data_summed1, file="Results/ITS/mostabundanttaxa_relativeabundance_untreatedtreated_dads.csv",row.names = TRUE)
 
 data2 <-
   dads_5asv.ps %>%
@@ -262,7 +282,7 @@ data_summed2 <- data2 %>%
   summarise(Abundance = sum(Abundance),
             Prevalence = n_distinct(Sample))
 
-write.csv(data_summed2, file="Results/DADS/ITS/mostabundanttaxa_untreatedtreated_dads.csv",row.names = TRUE)
+write.csv(data_summed2, file="Results/ITS/mostabundanttaxa_untreatedtreated_dads.csv",row.names = TRUE)
 ```
 ### Which samples of Stromatinia in them? 
 ```{r Identify samples with stromatinia}
@@ -416,7 +436,7 @@ for (factor_name in factors2) {
 
 # Print final ANOVA table
 print(knitr::kable(final_anova_table, format = "markdown"))
-write.csv(final_anova_table, "Results/DADS/ITS/final_anova_table_dads.csv", row.names = FALSE)
+write.csv(final_anova_table, "Results/ITS/final_anova_table_dads.csv", row.names = FALSE)
 ```
 
 ### Let's make faceted boxplots for our alpha diversity analyses
@@ -457,7 +477,7 @@ plots_arrange_with_text <- cowplot::ggdraw() +
   cowplot::draw_plot("Soil", x = 0.73, y = 0.98)
 
 # Save the arranged plots
-ggsave(plots_arrange_with_text, path = "Figures/DADS/ITS", filename = "alpha_diversity_each_factor_dads.pdf", 
+ggsave(plots_arrange_with_text, path = "Figures/ITS", filename = "alpha_diversity_each_factor_dads.pdf", 
        width = 12, height = 16)
 ```
 
@@ -606,7 +626,7 @@ final_results <- final_results[, c("Factor", "Df", "SumOfSqs", "R2", "F", "pr_f"
 print(final_results, row.names = FALSE)
 
 # Save results
-write.csv(final_results, file = "Results/DADS/ITS/PERMANOVA_interactions_with_betadisper.csv", row.names = FALSE)
+write.csv(final_results, file = "Results/ITS/PERMANOVA_interactions_with_betadisper.csv", row.names = FALSE)
 ```
 
 ### What about interactions between factors?
@@ -703,7 +723,7 @@ heatmap <- heatmap + labs(x = NULL, y = NULL)
 print(heatmap)
 
 # Save the heatmap as a PDF file
-ggsave("Figures/DADS/ITS/permanova_interactions_heatmap_dads.pdf", plot = heatmap, width = 8, height = 6)
+ggsave("Figures/ITS/permanova_interactions_heatmap_dads.pdf", plot = heatmap, width = 8, height = 6)
 ```
 
 ### Let's now examine beta diversity through ordination plots
@@ -730,7 +750,7 @@ plot_ellipses<-plot_3 +
 plot_ellipses
 
 #Export pcoa coordinates per sample
-write.csv(ps_pcoa3[["points"]], file="Results/DADS/ITS/ITS_pcoa_coordinates_persample.csv",row.names = TRUE)
+write.csv(ps_pcoa3[["points"]], file="Results/ITS/ITS_pcoa_coordinates_persample.csv",row.names = TRUE)
 
 
 res <- adonis2(ASV_tables_bray~Treatment*Incubation*Soil, data = df_metadata, permutations = 9999)
@@ -855,7 +875,7 @@ tax_table$ASV_id <- rownames(tax_table)
 dads.wilcox.dt <- merge(dads.wilcox.dt, tax_table, by.x = "ASV", by.y = "ASV_id", all.x = TRUE)
 
 # Export to CSV
-write.csv(dads.wilcox.dt, file = "Results/DADS/ITS/wilcox_treat_vs_untreat_dads.csv", row.names = FALSE)
+write.csv(dads.wilcox.dt, file = "Results/ITS/wilcox_treat_vs_untreat_dads.csv", row.names = FALSE)
 ```
 
 ### Let's now do a DESEQ2 analysis-treatment
@@ -875,7 +895,7 @@ dads.sig.dt = cbind(as(dads.sig.dt, "data.frame"), as(tax_table(dads_5asv.ps)[da
 dads.sig.dt <- dads.sig.dt %>%
   mutate(across(everything(), ~ifelse(is.na(.), "Unclassified", .)))
 
-write.csv(dads.sig.dt, file="Results/DADS/ITS/deseq_trt_dads.csv",row.names = TRUE)
+write.csv(dads.sig.dt, file="Results/ITS/deseq_trt_dads.csv",row.names = TRUE)
 # Now, let's create the plot
 deseqplot2 <- ggplot(dads.sig.dt, aes(y = reorder(ASV, log2FoldChange), x = log2FoldChange, fill = Phylum)) +
   geom_vline(xintercept = 0.0, color = "gray", size = 0.5, linetype = "dashed") +
@@ -898,7 +918,7 @@ deseqplot2 <- ggplot(dads.sig.dt, aes(y = reorder(ASV, log2FoldChange), x = log2
   )
 
 # Save the plot
-ggsave("Figures/DADS/ITS/Deseq_treatment_barplot_dads_ASV.pdf", deseqplot2, width=40, height=40)
+ggsave("Figures/ITS/Deseq_treatment_barplot_dads_ASV.pdf", deseqplot2, width=40, height=40)
 
 # Display the plot
 print(deseqplot2)
@@ -931,7 +951,7 @@ final_table <- merged_table %>%
 
 
 # Save the final table as CSV
-write.csv(final_table, "Results/DADS/ITS/merged_deseq_trt_wilcoxon_results.csv", row.names = FALSE)
+write.csv(final_table, "Results/ITS/merged_deseq_trt_wilcoxon_results.csv", row.names = FALSE)
 print(paste("Number of ASVs in the final table:", nrow(final_table)))
 ```
 
@@ -958,7 +978,7 @@ merged_plot <- ggplot(final_table, aes(y = reorder(ASV, log2FoldChange), x = log
   )
 
 # Save the plot
-ggsave("Figures/DADS/ITS/Deseq_merged_trt_barplot_dads_ASV.pdf", merged_plot, height=30, width=40)
+ggsave("Figures/ITS/Deseq_merged_trt_barplot_dads_ASV.pdf", merged_plot, height=30, width=40)
 
 # Display the plot
 print(merged_plot)
@@ -1002,7 +1022,7 @@ tax_table$ASV_id <- rownames(tax_table)
 dads.wilcox.dt <- merge(dads.wilcox.dt, tax_table, by.x = "ASV", by.y = "ASV_id", all.x = TRUE)
 
 # Export to CSV
-write.csv(dads.wilcox.dt, file = "Results/DADS/ITS/wilcox_soil_dads.csv", row.names = FALSE)
+write.csv(dads.wilcox.dt, file = "Results/ITS/wilcox_soil_dads.csv", row.names = FALSE)
 ```
 
 ### Let's now do a DESEQ2 analysis-soil
@@ -1022,7 +1042,7 @@ dads.sig.dt = cbind(as(dads.sig.dt, "data.frame"), as(tax_table(dads_5asv.ps)[da
 dads.sig.dt <- dads.sig.dt %>%
   mutate(across(everything(), ~ifelse(is.na(.), "Unclassified", .)))
 
-write.csv(dads.sig.dt, file="Results/DADS/ITS/deseq_soil_dads.csv",row.names = TRUE)
+write.csv(dads.sig.dt, file="Results/ITS/deseq_soil_dads.csv",row.names = TRUE)
 # Now, let's create the plot
 deseqplot2 <- ggplot(dads.sig.dt, aes(y = reorder(ASV, log2FoldChange), x = log2FoldChange, fill = Genus)) +
   geom_vline(xintercept = 0.0, color = "gray", size = 0.5, linetype = "dashed") +
@@ -1045,7 +1065,7 @@ deseqplot2 <- ggplot(dads.sig.dt, aes(y = reorder(ASV, log2FoldChange), x = log2
   )
 
 # Save the plot
-ggsave("Figures/DADS/ITS/Deseq_soil_barplot_dads_ASV.pdf", deseqplot2)
+ggsave("Figures/ITS/Deseq_soil_barplot_dads_ASV.pdf", deseqplot2)
 
 # Display the plot
 print(deseqplot2)
@@ -1078,7 +1098,7 @@ final_table <- merged_table %>%
 
 
 # Save the final table as CSV
-write.csv(final_table, "Results/DADS/ITS/merged_deseq_soil_wilcoxon_results.csv", row.names = FALSE)
+write.csv(final_table, "Results/ITS/merged_deseq_soil_wilcoxon_results.csv", row.names = FALSE)
 print(paste("Number of ASVs in the final table:", nrow(final_table)))
 ```
 
@@ -1105,7 +1125,7 @@ merged_plot <- ggplot(final_table, aes(y = reorder(ASV, log2FoldChange), x = log
   )
 
 # Save the plot
-ggsave("Figures/DADS/ITS/Deseq_merged_soil_barplot_dads_ASV.pdf", merged_plot)
+ggsave("Figures/ITS/Deseq_merged_soil_barplot_dads_ASV.pdf", merged_plot)
 
 # Display the plot
 print(merged_plot)
@@ -1149,7 +1169,7 @@ tax_table$ASV_id <- rownames(tax_table)
 dads.wilcox.dt <- merge(dads.wilcox.dt, tax_table, by.x = "ASV", by.y = "ASV_id", all.x = TRUE)
 
 # Export to CSV
-write.csv(dads.wilcox.dt, file = "Results/DADS/ITS/wilcox_incubation_dads.csv", row.names = FALSE)
+write.csv(dads.wilcox.dt, file = "Results/ITS/wilcox_incubation_dads.csv", row.names = FALSE)
 ```
 
 ### Let's now do a DESEQ2 analysis-incubation-no significant results.
@@ -1169,7 +1189,7 @@ dads.res.dt <- results(dads.dds) %>% as.data.table(keep.rownames = "ASV")
 #dads.sig.dt <- dads.sig.dt %>%
 #mutate(across(everything(), ~ifelse(is.na(.), "Unclassified", .)))
 # 
-#write.csv(dads.sig.dt, # #file="Results/DADS/ITS/deseq_incubation_dads.csv",row.names = TRUE)
+#write.csv(dads.sig.dt, # #file="Results/ITS/deseq_incubation_dads.csv",row.names = TRUE)
 # 
 # # Now, let's create the plot
 # deseqplot2 <- ggplot(dads.sig.dt, aes(y = reorder(ASV, log2FoldChange), x = log2FoldChange, fill = Genus)) +
@@ -1193,7 +1213,7 @@ dads.res.dt <- results(dads.dds) %>% as.data.table(keep.rownames = "ASV")
 #   )
 # 
 # # Save the plot
-# ggsave("Figures/DADS/ITS/Deseq_incubation_barplot_dads_ASV.pdf", deseqplot2)
+# ggsave("Figures/ITS/Deseq_incubation_barplot_dads_ASV.pdf", deseqplot2)
 # 
 # # Display the plot
 # print(deseqplot2)
@@ -1225,7 +1245,7 @@ dads.res.dt <- results(dads.dds) %>% as.data.table(keep.rownames = "ASV")
 #   )
 # 
 # # Save the final table as CSV
-# write.csv(final_table, "Results/DADS/ITS/merged_deseq_incubation_wilcoxon_results.csv", row.names = FALSE)
+# write.csv(final_table, "Results/ITS/merged_deseq_incubation_wilcoxon_results.csv", row.names = FALSE)
 # print(paste("Number of ASVs in the final table:", nrow(final_table)))
 ```
 
@@ -1255,7 +1275,7 @@ In this case there is nothing to merge
 #   )
 # 
 # # Save the plot
-# ggsave("Figures/DADS/ITS/Deseq_merged_incubation_barplot_dads_ASV.pdf", merged_plot)
+# ggsave("Figures/ITS/Deseq_merged_incubation_barplot_dads_ASV.pdf", merged_plot)
 # 
 # # Display the plot
 # print(merged_plot)
@@ -1326,7 +1346,7 @@ obj_ITS %>%
                    node_color_axis_label = "Log 2 ratio of median counts",
                    layout = "da", initial_layout = "re",
                    key_size = 0.67,
-                   output_file = "Figures/DADS/ITS/diff_abundance_heattree_Wilcoxonranksum_dads_ITS_fdr.pdf")
+                   output_file = "Figures/ITS/diff_abundance_heattree_Wilcoxonranksum_dads_ITS_fdr.pdf")
 ```
 
 ### Make tree-wilcoxon rank sum- treatment-only use normalized relative abundance data rather than total abundance
@@ -1364,7 +1384,7 @@ obj_ITS_rarefy %>%
                    node_color_axis_label = "Log 2 ratio of median counts",
                    layout = "da", initial_layout = "re",
                    key_size = 0.67,
-                   output_file = "Figures/DADS/ITS/diff_abundance_heattree_Wilcoxonranksum__rarefy_dads_ITS_fdr.pdf")
+                   output_file = "Figures/ITS/diff_abundance_heattree_Wilcoxonranksum__rarefy_dads_ITS_fdr.pdf")
 ```
 
 
@@ -1403,7 +1423,7 @@ obj_ITS %>%
                    node_color_axis_label = "Log 2 ratio of median counts",
                    layout = "da", initial_layout = "re",
                    key_size = 0.67,
-                   output_file = "Figures/DADS/ITS/diff_abundance_heattree_Wilcoxonranksum_relabundance_dads_ITS_fdr.pdf")
+                   output_file = "Figures/ITS/diff_abundance_heattree_Wilcoxonranksum_relabundance_dads_ITS_fdr.pdf")
 ```
 
 
@@ -1438,7 +1458,7 @@ obj_ITS %>%
                    node_color_axis_label = "Log 2 Fold Change",
                    layout = "da", initial_layout = "re",
                    key_size = 0.4,
-                   output_file = "Figures/DADS/ITS/diff_abundance_heattree_deseq_dads_ITS.pdf") # The layout algorithm that initializes node locations
+                   output_file = "Figures/ITS/diff_abundance_heattree_deseq_dads_ITS.pdf") # The layout algorithm that initializes node locations
 ```
 
 ### Software used
