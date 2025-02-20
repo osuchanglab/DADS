@@ -1,4 +1,5 @@
 "","Kingdom","Phylum","Class","Order","Family","Genus","Abundance","Prevalence","Total_Abundance","Percentage"
-"1","Stramenopila","Oomycota","Oomycetes","Peronosporales","Peronosporaceae","Phytophthora",1927,6,1253722,0.153702335924551
-"2","Stramenopila","Oomycota","Oomycetes","Pythiales","Pythiaceae","Pythium",1251710,24,1253722,99.8395178516449
-"3","Stramenopila","Oomycota","Oomycetes","Saprolegniales","Saprolegniaceae","Aphanomyces",85,2,1253722,0.00677981243050692
+"1","Stramenopila","Oomycota","Oomycetes","Peronosporales","Peronosporaceae","Phytophthora",7205,14,1230056,0.585745689627139
+"2","Stramenopila","Oomycota","Oomycetes","Pythiales","Pythiaceae","Globisporangium",1095379,24,1230056,89.0511488907822
+"3","Stramenopila","Oomycota","Oomycetes","Pythiales","Pythiaceae","Pythium",127387,22,1230056,10.3561951650982
+"4","Stramenopila","Oomycota","Oomycetes","Saprolegniales","Leptolegniaceae","Aphanomyces",85,2,1230056,0.00691025449247839

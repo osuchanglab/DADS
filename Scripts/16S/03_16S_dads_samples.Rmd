@@ -45,12 +45,12 @@ otu_data <- as(otu_table(dads_5asv.ps), "matrix")
 S <- specnumber(otu_data) # observed number of species
 raremax <- min(rowSums(otu_data))
 
-pdf("Figures/RPS10/rarefaction_curve.pdf", width = 10, height = 8)
+pdf("Figures/16S/rarefaction_curve.pdf", width = 10, height = 8)
 rarecurve(otu_data, step = 10, sample = raremax, col = "blue", cex = 0.6, label = TRUE, xlab = "Sequencing Depth", ylab = "Number of ASVs")
 dev.off()
 
 # Save the plot to a PDF
-pdf("Figures/RPS10/speciesaccum_curve.pdf", width = 10, height = 8)
+pdf("Figures/16S/speciesaccum_curve.pdf", width = 10, height = 8)
 asv_accum <- vegan::specaccum(otu_data, method = "exact")
 plot(asv_accum, ci.type = "poly", col = "blue", lwd = 2, ci.lty = 0, ci.col = "lightblue", xlab = "Number of samples", ylab = "Number of Filtered ASVs")
 dev.off()
@@ -479,7 +479,7 @@ mapping <- as.data.frame(sample_data(rarefied.ps))
 
 mapping2=mapping[, c("Treatment", "Soil", "Incubation")]
 
-ASV_tables_bray <- phyloseq::distance(rarefied.ps, method = "bray")
+ASV_tables_bray_rarefy <- phyloseq::distance(rarefied.ps, method = "bray")
 
 df_metadata <- data.frame(sample_data(rarefied.ps))
 
@@ -488,7 +488,7 @@ df_metadata<-df_metadata[, c("Treatment", "Soil", "Incubation")]
 pvals <- sapply(colnames(mapping2), function(variable){
   
   #Create formula for adonis() 
-  form1<-as.formula(paste("ASV_tables_bray", variable, sep="~"))
+  form1<-as.formula(paste("ASV_tables_bray_rarefy", variable, sep="~"))
   
   res <- adonis2(form1, data = df_metadata, permutations = 9999)
   
@@ -692,14 +692,14 @@ We'll now make ordination plots on data for which we've calculated relative abun
 ```{r Beta diversity-Rel. abundance-treated and untreated samples}
 #Relative abundance
 set.seed(1)
-ps_pcoa = ordinate(strat_rel.ps, 
-                   method="PCoA", 
+ps_NMDS = ordinate(strat_rel.ps, 
+                   method="NMDS", 
                    distance="bray")
 
 plot<- plot_ordination(strat_rel.ps, 
-                         ps_pcoa,
+                         ps_NMDS,
                          color= "Treatment") +
-  ggtitle("pcoa ordination plot - relative abundance") +
+  ggtitle("NMDS ordination plot - relative abundance") +
   labs(color = "Factor") + 
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
@@ -709,8 +709,8 @@ plot_ellipses<-plot +
 
 plot_ellipses
 
-#Export pcoa coordinates per sample
-write.csv(ps_pcoa[["points"]], file="Results/16S/16S_pcoa_coordinates_persample.csv",row.names = TRUE)
+#Export NMDS coordinates per sample
+write.csv(ps_NMDS[["points"]], file="Results/16S/16S_NMDS_coordinates_persample.csv",row.names = TRUE)
 
 
 res <- adonis2(ASV_tables_bray~Treatment*Incubation*Soil, data = df_metadata, permutations = 9999)
@@ -724,15 +724,15 @@ Now, we'll look at ordination plot (rel abundance dataset), with incubation fact
 ```{r Beta diversity-Rel. abundance-incubation}
 #Relative abundance
 set.seed(1)
-ps_pcoa = ordinate(strat_rel.ps, 
-                   method="PCoA",
+ps_NMDS = ordinate(strat_rel.ps, 
+                   method="NMDS",
                    distance="bray")
 
 plot<- plot_ordination(strat_rel.ps, 
-                         ps_pcoa,
+                         ps_NMDS,
                          labs(color = "Factor"),
                          color= "Incubation") +
-  ggtitle("pcoa ordination plot - relative abundance") +
+  ggtitle("NMDS ordination plot - relative abundance") +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
 
@@ -747,15 +747,15 @@ Now, we'll look at ordination plot rel abundance-with Soil factor
 ```{r Beta diversity-Rel. abundance-soil}
 #Relative abundance
 set.seed(1)
-ps_pcoa = ordinate(strat_rel.ps, 
-                   method="PCoA",
+ps_NMDS = ordinate(strat_rel.ps, 
+                   method="NMDS",
                    distance="bray")
 
 plot<- plot_ordination(strat_rel.ps, 
-                         ps_pcoa,
+                         ps_NMDS,
                          labs(color = "Factor"),
                          color= "Soil") +
-  ggtitle("pcoa ordination plot - relative abundance") +
+  ggtitle("NMDS ordination plot - relative abundance") +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
 
@@ -1249,16 +1249,21 @@ remove_boot_columns <- function(x) {
   return(x)
 }
 
+adjust_species_names <- function(x) {
+  x$Species <- sub(".*_", "", x$Species)
+  return(x)
+}
+
 dads_5asv_tax <- tax_table(dads_5asv.ps) %>%
   as.data.frame() %>%
   remove_boot_columns() %>%
+  adjust_species_names %>%
   as.matrix() %>%
   tax_table()
 
 tax_table(dads_5asv.ps) <- dads_5asv_tax
 
 obj_16S<-parse_phyloseq(dads_5asv.ps)
-obj_16S_rarefy <-parse_phyloseq(rarefied.ps)
 
 obj_16S$data$tax_abund <- calc_taxon_abund(obj_16S, data = "otu_table", cols = obj_16S$data$sample_data$sample_id)
 obj_16S_rarefy$data$tax_abund <- calc_taxon_abund(obj_16S_rarefy , data = "otu_table", cols = obj_16S_rarefy$data$sample_data$sample_id)
@@ -1269,122 +1274,6 @@ obj_16S$data$tax_prop <- calc_taxon_abund(obj_16S, data = "abund_prop", cols = o
 
 obj_16S$data$tax_prop$all_samples <- rowMeans(obj_16S$data$tax_prop[,obj_16S$data$sample_data$sample_id])
 ```
-
-### Make tree-wilcoxon rank sum-treatment
-```{r, diff abundance trees-Wilcoxon rank sum}
-set.seed(1)
-obj_16S$data$diff_table <- metacoder::compare_groups(obj_16S,
-                                      data = "tax_abund",
-                                      cols = obj_16S$data$sample_data$sample_id, # What columns of sample data to
-                                      groups = obj_16S$data$sample_data$Treatment) # What category each sample is assigned to
-
-obj_16S <- mutate_obs(obj_16S, "diff_table",
-                  wilcox_p_value = p.adjust(wilcox_p_value, method = "fdr"))
-
-obj_16S$data$diff_table$log2_median_ratio[obj_16S$data$diff_table$wilcox_p_value > 0.05] <- 0
-
-
-range(obj_16S$data$diff_table$wilcox_p_value, finite = TRUE) 
-range(obj_16S$data$diff_table$log2_median_ratio, finite = TRUE) 
-
-obj_16S<- metacoder::filter_taxa(obj_16S, taxon_names != "None", reassign_obs = FALSE)
-obj_16S <- metacoder::filter_taxa(obj_16S, taxon_names != "", reassign_obs = FALSE)
-obj_16S <- metacoder::filter_taxa(obj_16S, taxon_names != "NA", reassign_obs = FALSE)
-
-obj_16S %>%
-  metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
-  heat_tree_matrix(data = "diff_table",
-                   node_label = taxon_names,
-                   node_size = n_obs, # number of OTUs
-                   node_color = log2_median_ratio, # difference between groups
-                   node_color_trans = "linear",
-                   node_color_interval = c(-5, 5), # symmetric interval
-                   edge_color_interval = c(-5, 5), # symmetric interval
-                   node_color_range = diverging_palette(), # diverging colors
-                   node_size_axis_label = "ASV count",
-                   node_color_axis_label = "Log 2 ratio of median counts",
-                   layout = "da", initial_layout = "re",
-                   key_size = 0.67,
-                   output_file = "Figures/16S/diff_abundance_heattree_Wilcoxonranksum_dads_16S_fdr.pdf")
-```
-
-### Make tree-wilcoxon rank sum- treatment-only use normalized relative abundance data rather than total abundance
-```{r, diff abundance trees-Wilcoxon rank sum-rel abundance}
-set.seed(1)
-obj_16S_rarefy$data$diff_table <- metacoder::compare_groups(obj_16S_rarefy,
-                                      data = "tax_abund",
-                                      cols = obj_16S_rarefy$data$sample_data$sample_id, # What columns of sample data to
-                                      groups = obj_16S_rarefy$data$sample_data$Treatment) # What category each sample is assigned to
-
-obj_16S_rarefy <- mutate_obs(obj_16S_rarefy, "diff_table",
-                  wilcox_p_value = p.adjust(wilcox_p_value, method = "fdr"))
-
-obj_16S_rarefy$data$diff_table$log2_median_ratio[obj_16S_rarefy$data$diff_table$wilcox_p_value > 0.05] <- 0
-
-
-range(obj_16S_rarefy$data$diff_table$wilcox_p_value, finite = TRUE) 
-range(obj_16S_rarefy$data$diff_table$log2_median_ratio, finite = TRUE) 
-
-obj_16S_rarefy<- metacoder::filter_taxa(obj_16S_rarefy, taxon_names != "None", reassign_obs = FALSE)
-obj_16S_rarefy <- metacoder::filter_taxa(obj_16S_rarefy, taxon_names != "", reassign_obs = FALSE)
-obj_16S_rarefy <- metacoder::filter_taxa(obj_16S_rarefy, taxon_names != "NA", reassign_obs = FALSE)
-
-obj_16S_rarefy %>%
-  metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
-  heat_tree_matrix(data = "diff_table",
-                   node_label = taxon_names,
-                   node_size = n_obs, # number of OTUs
-                   node_color = log2_median_ratio, # difference between groups
-                   node_color_trans = "linear",
-                   node_color_interval = c(-5.5, 5.5), # symmetric interval
-                   edge_color_interval = c(-5.5, 5.5), # symmetric interval
-                   node_color_range = diverging_palette(), # diverging colors
-                   node_size_axis_label = "Mean read proportion",
-                   node_color_axis_label = "Log 2 ratio of median counts",
-                   layout = "da", initial_layout = "re",
-                   key_size = 0.67,
-                   output_file = "Figures/16S/diff_abundance_heattree_Wilcoxonranksum__rarefy_dads_16S_fdr.pdf")
-```
-
-
-### Make tree-wilcoxon rank sum- treatment-only use normalized-rel abundance
-```{r, diff abundance trees-Wilcoxon rank sum-rarefied counts}
-set.seed(1)
-obj_16S$data$diff_table <- metacoder::compare_groups(obj_16S,
-                                      data = "tax_prop",
-                                      cols = obj_16S$data$sample_data$sample_id, # What columns of sample data to
-                                      groups = obj_16S$data$sample_data$Treatment) # What category each sample is assigned to
-
-obj_16S <- mutate_obs(obj_16S, "diff_table",
-                  wilcox_p_value = p.adjust(wilcox_p_value, method = "fdr"))
-
-obj_16S$data$diff_table$log2_median_ratio[obj_16S$data$diff_table$wilcox_p_value > 0.05] <- 0
-
-
-range(obj_16S$data$diff_table$wilcox_p_value, finite = TRUE) 
-range(obj_16S$data$diff_table$log2_median_ratio, finite = TRUE) 
-
-obj_16S<- metacoder::filter_taxa(obj_16S, taxon_names != "None", reassign_obs = FALSE)
-obj_16S <- metacoder::filter_taxa(obj_16S, taxon_names != "", reassign_obs = FALSE)
-obj_16S <- metacoder::filter_taxa(obj_16S, taxon_names != "NA", reassign_obs = FALSE)
-
-obj_16S %>%
-  metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
-  heat_tree_matrix(data = "diff_table",
-                   node_label = taxon_names,
-                   node_size = all_samples, # number of OTUs
-                   node_color = log2_median_ratio, # difference between groups
-                   node_color_trans = "linear",
-                   node_color_interval = c(-5, 5), # symmetric interval
-                   edge_color_interval = c(-5, 5), # symmetric interval
-                   node_color_range = diverging_palette(), # diverging colors
-                   node_size_axis_label = "Mean read proportion",
-                   node_color_axis_label = "Log 2 ratio of median counts",
-                   layout = "da", initial_layout = "re",
-                   key_size = 0.67,
-                   output_file = "Figures/16S/diff_abundance_heattree_Wilcoxonranksum_relabundance_dads_16S_fdr.pdf")
-```
-
 
 ### We'll then do DESEQ analysis on untreated vs. untreated samples
 ```{r, diff abundance trees-deseq}
@@ -1405,6 +1294,7 @@ obj_16S <- metacoder::filter_taxa(obj_16S, taxon_names != "NA", reassign_obs = F
 
 obj_16S %>%
   metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
+  remove_redundant_names() %>%
   heat_tree_matrix(data = "diff_table_deseq",
                    node_label = taxon_names,
                    node_size = n_obs, # number of OTUs
@@ -1417,6 +1307,8 @@ obj_16S %>%
                    node_color_axis_label = "Log 2 Fold Change",
                    layout = "da", initial_layout = "re",
                    key_size = 0.4,
+                   #node_size_range = c(.01, .055),
+                   #node_label_size_range = c(.012, .032),
                    output_file = "Figures/16S/diff_abundance_heattree_deseq_dads_16S.pdf") # The layout algorithm that initializes node locations
 ```
 

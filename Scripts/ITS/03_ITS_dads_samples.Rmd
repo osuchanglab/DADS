@@ -519,7 +519,7 @@ mapping <- as.data.frame(sample_data(rarefied.ps))
 
 mapping2=mapping[, c("Treatment", "Soil", "Incubation")]
 
-ASV_tables_bray <- phyloseq::distance(rarefied.ps, method = "bray")
+ASV_tables_bray_rarefy <- phyloseq::distance(rarefied.ps, method = "bray")
 
 df_metadata <- data.frame(sample_data(rarefied.ps))
 
@@ -528,7 +528,7 @@ df_metadata<-df_metadata[, c("Treatment", "Soil", "Incubation")]
 pvals <- sapply(colnames(mapping2), function(variable){
   
   #Create formula for adonis() 
-  form1<-as.formula(paste("ASV_tables_bray", variable, sep="~"))
+  form1<-as.formula(paste("ASV_tables_bray_rarefy", variable, sep="~"))
   
   res <- adonis2(form1, data = df_metadata, permutations = 9999)
   
@@ -732,14 +732,14 @@ We'll now make ordination plots on data for which we've calculated relative abun
 ```{r Beta diversity-Rel. abundance-treated and untreated samples}
 set.seed(1)
 #Relative abundance
-ps_pcoa3 = ordinate(strat_rel.ps, 
-                   method="PCoA", 
+ps_NMDS3 = ordinate(strat_rel.ps, 
+                   method="NMDS", 
                    distance="bray")
 
 plot_3<- plot_ordination(strat_rel.ps, 
-                         ps_pcoa3,
+                         ps_NMDS3,
                          color= "Treatment") +
-  ggtitle("pcoa ordination plot - relative abundance") +
+  ggtitle("NMDS ordination plot - relative abundance") +
   labs(color = "Factor") + 
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
@@ -749,8 +749,8 @@ plot_ellipses<-plot_3 +
 
 plot_ellipses
 
-#Export pcoa coordinates per sample
-write.csv(ps_pcoa3[["points"]], file="Results/ITS/ITS_pcoa_coordinates_persample.csv",row.names = TRUE)
+#Export NMDS coordinates per sample
+write.csv(ps_NMDS3[["points"]], file="Results/ITS/ITS_NMDS_coordinates_persample.csv",row.names = TRUE)
 
 
 res <- adonis2(ASV_tables_bray~Treatment*Incubation*Soil, data = df_metadata, permutations = 9999)
@@ -764,15 +764,15 @@ Now, we'll look at ordination plot (rel abundance dataset), with incubation fact
 ```{r Beta diversity-Rel. abundance-incubation}
 set.seed(1)
 #Relative abundance
-ps_pcoa3 = ordinate(strat_rel.ps, 
-                   method="PCoA",
+ps_NMDS3 = ordinate(strat_rel.ps, 
+                   method="NMDS",
                    distance="bray")
 
 plot_4<- plot_ordination(strat_rel.ps, 
-                         ps_pcoa3,
+                         ps_NMDS3,
                          labs(color = "Factor"),
                          color= "Incubation") +
-  ggtitle("pcoa ordination plot - relative abundance") +
+  ggtitle("NMDS ordination plot - relative abundance") +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
 
@@ -787,15 +787,15 @@ Now, we'll look at ordination plot rel abundance-with Soil factor
 ```{r Beta diversity-Rel. abundance-soil}
 set.seed(1)
 #Relative abundance
-ps_pcoa3 = ordinate(strat_rel.ps, 
-                   method="PCoA",
+ps_NMDS3 = ordinate(strat_rel.ps, 
+                   method="NMDS",
                    distance="bray")
 
 plot_4<- plot_ordination(strat_rel.ps, 
-                         ps_pcoa3,
+                         ps_NMDS3,
                          labs(color = "Factor"),
                          color= "Soil") +
-  ggtitle("pcoa ordination plot - relative abundance") +
+  ggtitle("NMDS ordination plot - relative abundance") +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
 
@@ -1290,12 +1290,18 @@ remove_boot_columns <- function(x) {
   return(x)
 }
 
+adjust_species_names <- function(x) {
+  x$Species <- sub(".*_", "", x$Species)
+  return(x)
+}
+
 dads_5asv_tax <- tax_table(dads_5asv.ps) %>%
   as.data.frame() %>%
   remove_boot_columns() %>%
+  adjust_species_names %>%
   as.matrix() %>%
   tax_table()
-
+  
 tax_table(dads_5asv.ps) <- dads_5asv_tax
 
 obj_ITS<-parse_phyloseq(dads_5asv.ps)
@@ -1310,122 +1316,6 @@ obj_ITS$data$tax_prop <- calc_taxon_abund(obj_ITS, data = "abund_prop", cols = o
 
 obj_ITS$data$tax_prop$all_samples <- rowMeans(obj_ITS$data$tax_prop[,obj_ITS$data$sample_data$sample_id])
 ```
-
-### Make tree-wilcoxon rank sum-treatment
-```{r, diff abundance trees-Wilcoxon rank sum}
-set.seed(1)
-obj_ITS$data$diff_table <- metacoder::compare_groups(obj_ITS,
-                                      data = "tax_abund",
-                                      cols = obj_ITS$data$sample_data$sample_id, # What columns of sample data to
-                                      groups = obj_ITS$data$sample_data$Treatment) # What category each sample is assigned to
-
-obj_ITS <- mutate_obs(obj_ITS, "diff_table",
-                  wilcox_p_value = p.adjust(wilcox_p_value, method = "fdr"))
-
-obj_ITS$data$diff_table$log2_median_ratio[obj_ITS$data$diff_table$wilcox_p_value > 0.05] <- 0
-
-
-range(obj_ITS$data$diff_table$wilcox_p_value, finite = TRUE) 
-range(obj_ITS$data$diff_table$log2_median_ratio, finite = TRUE) 
-
-obj_ITS<- metacoder::filter_taxa(obj_ITS, taxon_names != "None", reassign_obs = FALSE)
-obj_ITS <- metacoder::filter_taxa(obj_ITS, taxon_names != "", reassign_obs = FALSE)
-obj_ITS <- metacoder::filter_taxa(obj_ITS, taxon_names != "NA", reassign_obs = FALSE)
-
-obj_ITS %>%
-  metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
-  heat_tree_matrix(data = "diff_table",
-                   node_label = taxon_names,
-                   node_size = n_obs, # number of OTUs
-                   node_color = log2_median_ratio, # difference between groups
-                   node_color_trans = "linear",
-                   node_color_interval = c(-7, 7), # symmetric interval
-                   edge_color_interval = c(-7, 7), # symmetric interval
-                   node_color_range = diverging_palette(), # diverging colors
-                   node_size_axis_label = "ASV count",
-                   node_color_axis_label = "Log 2 ratio of median counts",
-                   layout = "da", initial_layout = "re",
-                   key_size = 0.67,
-                   output_file = "Figures/ITS/diff_abundance_heattree_Wilcoxonranksum_dads_ITS_fdr.pdf")
-```
-
-### Make tree-wilcoxon rank sum- treatment-only use normalized relative abundance data rather than total abundance
-```{r, diff abundance trees-Wilcoxon rank sum-rel abundance}
-set.seed(1)
-obj_ITS_rarefy$data$diff_table <- metacoder::compare_groups(obj_ITS_rarefy,
-                                      data = "tax_abund",
-                                      cols = obj_ITS_rarefy$data$sample_data$sample_id, # What columns of sample data to
-                                      groups = obj_ITS_rarefy$data$sample_data$Treatment) # What category each sample is assigned to
-
-obj_ITS_rarefy <- mutate_obs(obj_ITS_rarefy, "diff_table",
-                  wilcox_p_value = p.adjust(wilcox_p_value, method = "fdr"))
-
-obj_ITS_rarefy$data$diff_table$log2_median_ratio[obj_ITS_rarefy$data$diff_table$wilcox_p_value > 0.05] <- 0
-
-
-range(obj_ITS_rarefy$data$diff_table$wilcox_p_value, finite = TRUE) 
-range(obj_ITS_rarefy$data$diff_table$log2_median_ratio, finite = TRUE) 
-
-obj_ITS_rarefy<- metacoder::filter_taxa(obj_ITS_rarefy, taxon_names != "None", reassign_obs = FALSE)
-obj_ITS_rarefy <- metacoder::filter_taxa(obj_ITS_rarefy, taxon_names != "", reassign_obs = FALSE)
-obj_ITS_rarefy <- metacoder::filter_taxa(obj_ITS_rarefy, taxon_names != "NA", reassign_obs = FALSE)
-
-obj_ITS_rarefy %>%
-  metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
-  heat_tree_matrix(data = "diff_table",
-                   node_label = taxon_names,
-                   node_size = n_obs, # number of OTUs
-                   node_color = log2_median_ratio, # difference between groups
-                   node_color_trans = "linear",
-                   node_color_interval = c(-7.5, 7.5), # symmetric interval
-                   edge_color_interval = c(-7.5, 7.5), # symmetric interval
-                   node_color_range = diverging_palette(), # diverging colors
-                   node_size_axis_label = "Mean read proportion",
-                   node_color_axis_label = "Log 2 ratio of median counts",
-                   layout = "da", initial_layout = "re",
-                   key_size = 0.67,
-                   output_file = "Figures/ITS/diff_abundance_heattree_Wilcoxonranksum__rarefy_dads_ITS_fdr.pdf")
-```
-
-
-### Make tree-wilcoxon rank sum- treatment-only use normalized-rel abundance
-```{r, diff abundance trees-Wilcoxon rank sum-rarefied counts}
-set.seed(1)
-obj_ITS$data$diff_table <- metacoder::compare_groups(obj_ITS,
-                                      data = "tax_prop",
-                                      cols = obj_ITS$data$sample_data$sample_id, # What columns of sample data to
-                                      groups = obj_ITS$data$sample_data$Treatment) # What category each sample is assigned to
-
-obj_ITS <- mutate_obs(obj_ITS, "diff_table",
-                  wilcox_p_value = p.adjust(wilcox_p_value, method = "fdr"))
-
-obj_ITS$data$diff_table$log2_median_ratio[obj_ITS$data$diff_table$wilcox_p_value > 0.05] <- 0
-
-
-range(obj_ITS$data$diff_table$wilcox_p_value, finite = TRUE) 
-range(obj_ITS$data$diff_table$log2_median_ratio, finite = TRUE) 
-
-obj_ITS<- metacoder::filter_taxa(obj_ITS, taxon_names != "None", reassign_obs = FALSE)
-obj_ITS <- metacoder::filter_taxa(obj_ITS, taxon_names != "", reassign_obs = FALSE)
-obj_ITS <- metacoder::filter_taxa(obj_ITS, taxon_names != "NA", reassign_obs = FALSE)
-
-obj_ITS %>%
-  metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
-  heat_tree_matrix(data = "diff_table",
-                   node_label = taxon_names,
-                   node_size = all_samples, # number of OTUs
-                   node_color = log2_median_ratio, # difference between groups
-                   node_color_trans = "linear",
-                   node_color_interval = c(-7.5,7.5), # symmetric interval
-                   edge_color_interval = c(-7.5, 7.5), # symmetric interval
-                   node_color_range = diverging_palette(), # diverging colors
-                   node_size_axis_label = "Mean read proportion",
-                   node_color_axis_label = "Log 2 ratio of median counts",
-                   layout = "da", initial_layout = "re",
-                   key_size = 0.67,
-                   output_file = "Figures/ITS/diff_abundance_heattree_Wilcoxonranksum_relabundance_dads_ITS_fdr.pdf")
-```
-
 
 ### We'll then do DESEQ analysis on untreated vs. untreated samples
 ```{r, diff abundance trees-deseq}
@@ -1446,6 +1336,7 @@ obj_ITS <- metacoder::filter_taxa(obj_ITS, taxon_names != "NA", reassign_obs = F
 
 obj_ITS %>%
   metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
+  remove_redundant_names() %>%
   heat_tree_matrix(data = "diff_table_deseq",
                    node_label = taxon_names,
                    node_size = n_obs, # number of OTUs

@@ -1246,9 +1246,15 @@ remove_boot_columns <- function(x) {
   return(x)
 }
 
+adjust_species_names <- function(x) {
+  x$Species <- sub(".*_", "", x$Species)
+  return(x)
+}
+
 dads_5asv_tax <- tax_table(dads_5asv.ps) %>%
   as.data.frame() %>%
   remove_boot_columns() %>%
+  adjust_species_names %>%
   as.matrix() %>%
   tax_table()
 
@@ -1266,122 +1272,6 @@ obj_RPS10$data$tax_prop <- calc_taxon_abund(obj_RPS10, data = "abund_prop", cols
 
 obj_RPS10$data$tax_prop$all_samples <- rowMeans(obj_RPS10$data$tax_prop[,obj_RPS10$data$sample_data$sample_id])
 ```
-
-### Make tree-wilcoxon rank sum-treatment
-```{r, diff abundance trees-Wilcoxon rank sum}
-set.seed(1)
-obj_RPS10$data$diff_table <- metacoder::compare_groups(obj_RPS10,
-                                      data = "tax_abund",
-                                      cols = obj_RPS10$data$sample_data$sample_id, # What columns of sample data to
-                                      groups = obj_RPS10$data$sample_data$Treatment) # What category each sample is assigned to
-
-obj_RPS10 <- mutate_obs(obj_RPS10, "diff_table",
-                  wilcox_p_value = p.adjust(wilcox_p_value, method = "fdr"))
-
-obj_RPS10$data$diff_table$log2_median_ratio[obj_RPS10$data$diff_table$wilcox_p_value > 0.05] <- 0
-
-
-range(obj_RPS10$data$diff_table$wilcox_p_value, finite = TRUE) 
-range(obj_RPS10$data$diff_table$log2_median_ratio, finite = TRUE) 
-
-obj_RPS10<- metacoder::filter_taxa(obj_RPS10, taxon_names != "None", reassign_obs = FALSE)
-obj_RPS10 <- metacoder::filter_taxa(obj_RPS10, taxon_names != "", reassign_obs = FALSE)
-obj_RPS10 <- metacoder::filter_taxa(obj_RPS10, taxon_names != "NA", reassign_obs = FALSE)
-
-obj_RPS10 %>%
-  metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
-  heat_tree_matrix(data = "diff_table",
-                   node_label = taxon_names,
-                   node_size = n_obs, # number of OTUs
-                   node_color = log2_median_ratio, # difference between groups
-                   node_color_trans = "linear",
-                   node_color_interval = c(-5, 5), # symmetric interval
-                   edge_color_interval = c(-5, 5), # symmetric interval
-                   node_color_range = diverging_palette(), # diverging colors
-                   node_size_axis_label = "ASV count",
-                   node_color_axis_label = "Log 2 ratio of median counts",
-                   layout = "da", initial_layout = "re",
-                   key_size = 0.67,
-                   output_file = "Figures/RPS10/diff_abundance_heattree_Wilcoxonranksum_dads_RPS10_fdr.pdf")
-```
-
-### Make tree-wilcoxon rank sum- treatment-only use normalized relative abundance data rather than total abundance
-```{r, diff abundance trees-Wilcoxon rank sum-rel abundance}
-set.seed(1)
-obj_RPS10_rarefy$data$diff_table <- metacoder::compare_groups(obj_RPS10_rarefy,
-                                      data = "tax_abund",
-                                      cols = obj_RPS10_rarefy$data$sample_data$sample_id, # What columns of sample data to
-                                      groups = obj_RPS10_rarefy$data$sample_data$Treatment) # What category each sample is assigned to
-
-obj_RPS10_rarefy <- mutate_obs(obj_RPS10_rarefy, "diff_table",
-                  wilcox_p_value = p.adjust(wilcox_p_value, method = "fdr"))
-
-obj_RPS10_rarefy$data$diff_table$log2_median_ratio[obj_RPS10_rarefy$data$diff_table$wilcox_p_value > 0.05] <- 0
-
-
-range(obj_RPS10_rarefy$data$diff_table$wilcox_p_value, finite = TRUE) 
-range(obj_RPS10_rarefy$data$diff_table$log2_median_ratio, finite = TRUE) 
-
-obj_RPS10_rarefy<- metacoder::filter_taxa(obj_RPS10_rarefy, taxon_names != "None", reassign_obs = FALSE)
-obj_RPS10_rarefy <- metacoder::filter_taxa(obj_RPS10_rarefy, taxon_names != "", reassign_obs = FALSE)
-obj_RPS10_rarefy <- metacoder::filter_taxa(obj_RPS10_rarefy, taxon_names != "NA", reassign_obs = FALSE)
-
-obj_RPS10_rarefy %>%
-  metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
-  heat_tree_matrix(data = "diff_table",
-                   node_label = taxon_names,
-                   node_size = n_obs, # number of OTUs
-                   node_color = log2_median_ratio, # difference between groups
-                   node_color_trans = "linear",
-                   node_color_interval = c(-5.5, 5.5), # symmetric interval
-                   edge_color_interval = c(-5.5, 5.5), # symmetric interval
-                   node_color_range = diverging_palette(), # diverging colors
-                   node_size_axis_label = "Mean read proportion",
-                   node_color_axis_label = "Log 2 ratio of median counts",
-                   layout = "da", initial_layout = "re",
-                   key_size = 0.67,
-                   output_file = "Figures/RPS10/diff_abundance_heattree_Wilcoxonranksum__rarefy_dads_RPS10_fdr.pdf")
-```
-
-
-### Make tree-wilcoxon rank sum- treatment-only use normalized-rel abundance
-```{r, diff abundance trees-Wilcoxon rank sum-rarefied counts}
-set.seed(1)
-obj_RPS10$data$diff_table <- metacoder::compare_groups(obj_RPS10,
-                                      data = "tax_prop",
-                                      cols = obj_RPS10$data$sample_data$sample_id, # What columns of sample data to
-                                      groups = obj_RPS10$data$sample_data$Treatment) # What category each sample is assigned to
-
-obj_RPS10 <- mutate_obs(obj_RPS10, "diff_table",
-                  wilcox_p_value = p.adjust(wilcox_p_value, method = "fdr"))
-
-obj_RPS10$data$diff_table$log2_median_ratio[obj_RPS10$data$diff_table$wilcox_p_value > 0.05] <- 0
-
-
-range(obj_RPS10$data$diff_table$wilcox_p_value, finite = TRUE) 
-range(obj_RPS10$data$diff_table$log2_median_ratio, finite = TRUE) 
-
-obj_RPS10<- metacoder::filter_taxa(obj_RPS10, taxon_names != "None", reassign_obs = FALSE)
-obj_RPS10 <- metacoder::filter_taxa(obj_RPS10, taxon_names != "", reassign_obs = FALSE)
-obj_RPS10 <- metacoder::filter_taxa(obj_RPS10, taxon_names != "NA", reassign_obs = FALSE)
-
-obj_RPS10 %>%
-  metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
-  heat_tree_matrix(data = "diff_table",
-                   node_label = taxon_names,
-                   node_size = all_samples, # number of OTUs
-                   node_color = log2_median_ratio, # difference between groups
-                   node_color_trans = "linear",
-                   node_color_interval = c(-5, 5), # symmetric interval
-                   edge_color_interval = c(-5, 5), # symmetric interval
-                   node_color_range = diverging_palette(), # diverging colors
-                   node_size_axis_label = "Mean read proportion",
-                   node_color_axis_label = "Log 2 ratio of median counts",
-                   layout = "da", initial_layout = "re",
-                   key_size = 0.67,
-                   output_file = "Figures/RPS10/diff_abundance_heattree_Wilcoxonranksum_relabundance_dads_RPS10_fdr.pdf")
-```
-
 
 ### We'll then do DESEQ analysis on untreated vs. untreated samples
 ```{r, diff abundance trees-deseq}
@@ -1403,13 +1293,14 @@ obj_RPS10 <- metacoder::filter_taxa(obj_RPS10, taxon_names != "NA", reassign_obs
 
 obj_RPS10 %>%
   metacoder::filter_taxa(taxon_ranks == "Species", supertaxa = TRUE, reassign_obs = FALSE) %>%
+  remove_redundant_names() %>%
   heat_tree_matrix(data = "diff_table_deseq",
                    node_label = taxon_names,
                    node_size = n_obs, # number of OTUs
                    node_color = log2FoldChange, # difference between groups
                    node_color_trans = "linear",
-                   node_color_interval = c(-26, 26), # symmetric interval
-                   edge_color_interval = c(-26, 26), # symmetric interval
+                   node_color_interval = c(-25, 25), # symmetric interval
+                   edge_color_interval = c(-25, 25), # symmetric interval
                    node_color_range = diverging_palette(), # diverging colors
                    node_size_axis_label = "ASV count",
                    node_color_axis_label = "Log 2 Fold Change",
