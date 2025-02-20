@@ -689,18 +689,26 @@ ggsave("Figures/RPS10/permanova_interactions_heatmap_dads.pdf", plot = heatmap, 
 We'll will examine outputs for rarefied data as well as data adjusted by relative abundance
 We'll now make ordination plots on data for which we've calculated relative abundance
 ```{r Beta diversity-Rel. abundance-treated and untreated samples}
+
+devtools::install_github("ropensci/plotly")
+library(plotly)
 #Relative abundance
 set.seed(1)
-ps_pcoa = ordinate(strat_rel.ps, 
+ps_PCoA = ordinate(strat_rel.ps, 
                    method="PCoA", 
-                   distance="bray")
+                   distance="bray"
+                   )
 
-plot<- plot_ordination(strat_rel.ps, 
-                         ps_pcoa,
-                         color= "Treatment") +
-  ggtitle("pcoa ordination plot - relative abundance") +
+plot <- plot_ordination(strat_rel.ps, ps_PCoA, color = "Treatment") +
+  ggtitle("PCoA ordination plot - relative abundance") +
   labs(color = "Factor") + 
-  theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
+  theme(axis.text = element_text(size = 14), 
+        axis.title = element_text(size = 14), 
+        title = element_text(size = 13), 
+        legend.text = element_text(size = 18)) +
+  geom_jitter(width = 0.4, height = 0.4) 
+
+plot
 
 plot_ellipses<-plot +
    stat_ellipse(type = "norm", linetype = 2) +
@@ -708,8 +716,8 @@ plot_ellipses<-plot +
 
 plot_ellipses
 
-#Export pcoa coordinates per sample
-write.csv(ps_pcoa[["points"]], file="Results/RPS10/RPS10_pcoa_coordinates_persample.csv",row.names = TRUE)
+#Export PCoA coordinates per sample
+write.csv(ps_PCoA[["points"]], file="Results/RPS10/RPS10_PCoA_coordinates_persample.csv",row.names = TRUE)
 
 
 res <- adonis2(ASV_tables_bray~Treatment*Incubation*Soil, data = df_metadata, permutations = 9999)
@@ -723,15 +731,15 @@ Now, we'll look at ordination plot (rel abundance dataset), with incubation fact
 ```{r Beta diversity-Rel. abundance-incubation}
 #Relative abundance
 set.seed(1)
-ps_pcoa = ordinate(strat_rel.ps, 
+ps_PCoA = ordinate(strat_rel.ps, 
                    method="PCoA",
                    distance="bray")
 
 plot<- plot_ordination(strat_rel.ps, 
-                         ps_pcoa,
+                         ps_PCoA,
                          labs(color = "Factor"),
                          color= "Incubation") +
-  ggtitle("pcoa ordination plot - relative abundance") +
+  ggtitle("PCoA ordination plot - relative abundance") +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
 
@@ -746,15 +754,15 @@ Now, we'll look at ordination plot rel abundance-with Soil factor
 ```{r Beta diversity-Rel. abundance-soil}
 #Relative abundance
 set.seed(1)
-ps_pcoa = ordinate(strat_rel.ps, 
+ps_PCoA = ordinate(strat_rel.ps, 
                    method="PCoA",
                    distance="bray")
 
 plot<- plot_ordination(strat_rel.ps, 
-                         ps_pcoa,
+                         ps_PCoA,
                          labs(color = "Factor"),
                          color= "Soil") +
-  ggtitle("pcoa ordination plot - relative abundance") +
+  ggtitle("PCoA ordination plot - relative abundance") +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
 
@@ -1261,10 +1269,8 @@ dads_5asv_tax <- tax_table(dads_5asv.ps) %>%
 tax_table(dads_5asv.ps) <- dads_5asv_tax
 
 obj_RPS10<-parse_phyloseq(dads_5asv.ps)
-obj_RPS10_rarefy <-parse_phyloseq(rarefied.ps)
 
 obj_RPS10$data$tax_abund <- calc_taxon_abund(obj_RPS10, data = "otu_table", cols = obj_RPS10$data$sample_data$sample_id)
-obj_RPS10_rarefy$data$tax_abund <- calc_taxon_abund(obj_RPS10_rarefy , data = "otu_table", cols = obj_RPS10_rarefy$data$sample_data$sample_id)
 
 obj_RPS10$data$abund_prop <- calc_obs_props(obj_RPS10, data = "otu_table", cols = obj_RPS10$data$sample_data$sample_id)
 

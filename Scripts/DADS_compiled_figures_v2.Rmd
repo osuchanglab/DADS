@@ -6,7 +6,7 @@ date: "2024-06-11"
 
 ```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "~/SOD_DADS_microbiome")
+knitr::opts_knit$set(root.dir = "~/DADS")
 
 library(phyloseq); packageVersion("phyloseq")
 library(ggplot2); packageVersion("ggplot2")
@@ -270,8 +270,8 @@ facetted_figure_trt_with_margins <- plot_grid(
 
 facetted_figure_trt_with_margins
 # Save the figure
-ggsave("Figures/DADS/facetted_figure_alphadiv_treatment.svg", facetted_figure_trt_with_margins, width=8, height=12)
-ggsave("Figures/DADS/facetted_figure_alphadiv_treatment.pdf", facetted_figure_trt_with_margins, width=8, height=12)
+ggsave("Figures/facetted_figure_alphadiv_treatment.svg", facetted_figure_trt_with_margins, width=8, height=12)
+ggsave("Figures/facetted_figure_alphadiv_treatment.pdf", facetted_figure_trt_with_margins, width=8, height=12)
 ```
 
 ### Let's combine the soil type plots
@@ -316,11 +316,10 @@ facetted_figure_soil_with_margins <- plot_grid(
   rel_widths = c(0, 1, 0.08)  # 5% margin on each side
 )
 
-
 facetted_figure_soil_with_margins 
 # Save the figure
-ggsave("Figures/DADS/facetted_figure_alphadiv_soil.svg", facetted_figure_soil_with_margins, width=8, height=12)
-ggsave("Figures/DADS/facetted_figure_alphadiv_soil.pdf", facetted_figure_soil_with_margins, width=8, height=12)
+ggsave("Figures/facetted_figure_alphadiv_soil.svg", facetted_figure_soil_with_margins, width=8, height=12)
+ggsave("Figures/facetted_figure_alphadiv_soil.pdf", facetted_figure_soil_with_margins, width=8, height=12)
 ```
 
 ### Let's combine the incubation plots
@@ -367,8 +366,8 @@ facetted_figure_inc_with_margins <- plot_grid(
 
 facetted_figure_inc_with_margins 
 # Save the figure
-ggsave("Figures/DADS/facetted_figure_alphadiv_incubation.svg", facetted_figure_inc_with_margins, width=8, height=12)
-ggsave("Figures/DADS/facetted_figure_alphadiv_incubation.pdf", facetted_figure_inc_with_margins, width=8, height=12)
+ggsave("Figures/facetted_figure_alphadiv_incubation.svg", facetted_figure_inc_with_margins, width=8, height=12)
+ggsave("Figures/facetted_figure_alphadiv_incubation.pdf", facetted_figure_inc_with_margins, width=8, height=12)
 ```
 
 ### Let's proceed with ordination for the ITS dataset-PCoA
@@ -576,8 +575,8 @@ facetted_figure <- plot_grid(
 facetted_figure
 
 # Save the figure
-ggsave("Figures/DADS/facetted_figure_with_ordination_PCoA.svg", facetted_figure, width = 12, height = 12)
-ggsave("Figures/DADS/facetted_figure_with_ordination_PCoA.pdf", facetted_figure, width = 12, height = 12)
+ggsave("Figures/facetted_figure_with_ordination_PCoA.svg", facetted_figure, width = 12, height = 12)
+ggsave("Figures/facetted_figure_with_ordination_PCoA.pdf", facetted_figure, width = 12, height = 12)
 ```
 
 ### Let's proceed with ordination for the ITS dataset-NMDS
@@ -718,7 +717,7 @@ plot_rps10_soil<- plot_ordination(strat_rel_dads_rps10.ps,
                          ps_NMDS_rps10 ,
                          color= "Soil") +
   #ggtitle("NMDS ordination plot - relative abundance") +
-  labs(color = "Soil type") + 
+  labs(color = "Soil type") +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
 plot_ellipses_rps10_soil<-plot_rps10_soil +
@@ -773,8 +772,8 @@ facetted_figure <- plot_grid(
 facetted_figure
 
 # Save the figure
-ggsave("Figures/DADS/facetted_figure_with_ordination_NMDS.svg", facetted_figure, width = 12, height = 12)
-ggsave("Figures/DADS/facetted_figure_with_ordination_NMDS.pdf", facetted_figure, width = 12, height = 12)
+ggsave("Figures/facetted_figure_with_ordination_NMDS.svg", facetted_figure, width = 12, height = 12)
+ggsave("Figures/facetted_figure_with_ordination_NMDS.pdf", facetted_figure, width = 12, height = 12)
 ```
 
 ### Software used

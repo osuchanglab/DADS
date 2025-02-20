@@ -692,14 +692,14 @@ We'll now make ordination plots on data for which we've calculated relative abun
 ```{r Beta diversity-Rel. abundance-treated and untreated samples}
 #Relative abundance
 set.seed(1)
-ps_NMDS = ordinate(strat_rel.ps, 
-                   method="NMDS", 
+ps_PCoA = ordinate(strat_rel.ps, 
+                   method="PCoA", 
                    distance="bray")
 
 plot<- plot_ordination(strat_rel.ps, 
-                         ps_NMDS,
+                         ps_PCoA,
                          color= "Treatment") +
-  ggtitle("NMDS ordination plot - relative abundance") +
+  ggtitle("PCoA ordination plot - relative abundance") +
   labs(color = "Factor") + 
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
@@ -709,8 +709,8 @@ plot_ellipses<-plot +
 
 plot_ellipses
 
-#Export NMDS coordinates per sample
-write.csv(ps_NMDS[["points"]], file="Results/16S/16S_NMDS_coordinates_persample.csv",row.names = TRUE)
+#Export PCoA coordinates per sample
+write.csv(ps_PCoA[["points"]], file="Results/16S/16S_PCoA_coordinates_persample.csv",row.names = TRUE)
 
 
 res <- adonis2(ASV_tables_bray~Treatment*Incubation*Soil, data = df_metadata, permutations = 9999)
@@ -718,21 +718,28 @@ res
 pval=res$`Pr(>F)`[2]
 pval_adj <- p.adjust(pval, method = "fdr")
 print(pval_adj)
+
+library(phyloseq)
+library(plotly)
+
+# Perform PCoA ordination with k = 3
+
+
 ```
 
 Now, we'll look at ordination plot (rel abundance dataset), with incubation factor
 ```{r Beta diversity-Rel. abundance-incubation}
 #Relative abundance
 set.seed(1)
-ps_NMDS = ordinate(strat_rel.ps, 
-                   method="NMDS",
+ps_PCoA = ordinate(strat_rel.ps, 
+                   method="PCoA",
                    distance="bray")
 
 plot<- plot_ordination(strat_rel.ps, 
-                         ps_NMDS,
+                         ps_PCoA,
                          labs(color = "Factor"),
                          color= "Incubation") +
-  ggtitle("NMDS ordination plot - relative abundance") +
+  ggtitle("PCoA ordination plot - relative abundance") +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
 
@@ -747,15 +754,15 @@ Now, we'll look at ordination plot rel abundance-with Soil factor
 ```{r Beta diversity-Rel. abundance-soil}
 #Relative abundance
 set.seed(1)
-ps_NMDS = ordinate(strat_rel.ps, 
-                   method="NMDS",
+ps_PCoA = ordinate(strat_rel.ps, 
+                   method="PCoA",
                    distance="bray")
 
 plot<- plot_ordination(strat_rel.ps, 
-                         ps_NMDS,
+                         ps_PCoA,
                          labs(color = "Factor"),
                          color= "Soil") +
-  ggtitle("NMDS ordination plot - relative abundance") +
+  ggtitle("PCoA ordination plot - relative abundance") +
   theme(axis.text=element_text(size=14), axis.title=element_text(size=14), title =  element_text(size=13), legend.text = element_text(size = 18))
 
 
@@ -1266,7 +1273,6 @@ tax_table(dads_5asv.ps) <- dads_5asv_tax
 obj_16S<-parse_phyloseq(dads_5asv.ps)
 
 obj_16S$data$tax_abund <- calc_taxon_abund(obj_16S, data = "otu_table", cols = obj_16S$data$sample_data$sample_id)
-obj_16S_rarefy$data$tax_abund <- calc_taxon_abund(obj_16S_rarefy , data = "otu_table", cols = obj_16S_rarefy$data$sample_data$sample_id)
 
 obj_16S$data$abund_prop <- calc_obs_props(obj_16S, data = "otu_table", cols = obj_16S$data$sample_data$sample_id)
 
