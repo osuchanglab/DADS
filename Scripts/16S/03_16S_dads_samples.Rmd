@@ -1291,7 +1291,7 @@ obj_16S$data$diff_table_deseq <- metacoder::calc_diff_abund_deseq2(obj_16S,
 
 obj_16S$data$diff_table_deseq$log2FoldChange[obj_16S$data$diff_table_deseq$padj > 0.05] <- 0
 
-range(obj_16S$obj_16S$data$diff_table_deseq$padj, finite = TRUE) 
+range(obj_16S$data$diff_table_deseq$padj, finite = TRUE) 
 range(obj_16S$data$diff_table_deseq$log2FoldChange, finite = TRUE) 
 
 obj_16S<- metacoder::filter_taxa(obj_16S, taxon_names != "None", reassign_obs = FALSE)
