@@ -6,7 +6,7 @@ date: "2024-05-21"
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "~/DADS")
+knitr::opts_knit$set(root.dir = "~/Documents/Postdoc/DADS/")
 library(phyloseq); packageVersion("phyloseq")
 library(ggplot2); packageVersion("ggplot2")
 library(readr); packageVersion("readr")
@@ -40,7 +40,7 @@ summary(filtered_read_counts)
 
 ### Rarefaction curve 
 ```{r rarefaction curve}
-otu_data <- as(otu_table(dads_5asv.ps), "matrix")
+otu_data <- as(otu_table(dads.ps), "matrix")
 
 S <- specnumber(otu_data) # observed number of species
 raremax <- min(rowSums(otu_data))

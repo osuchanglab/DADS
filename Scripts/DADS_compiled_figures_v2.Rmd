@@ -6,7 +6,7 @@ date: "2024-06-11"
 
 ```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "~/DADS")
+knitr::opts_knit$set(root.dir = "~/Documents/Postdoc/DADS")
 
 library(phyloseq); packageVersion("phyloseq")
 library(ggplot2); packageVersion("ggplot2")
@@ -49,6 +49,21 @@ dads_rps10.ps<-dads.ps
 
 load("Data/RPS10/filtered_data/dads_5asv.RData")
 dads_5asv_rps10.ps<-dads_5asv.ps
+
+#Rename treatment factor levels to Mock-treated and DADS treated instead of untreated and DADS_treated
+dads_5asv_its.ps@sam_data$Treatment <- factor(dads_5asv_its.ps@sam_data$Treatment, levels = c("untreated", "DADS_treated"), labels = c("Mock-treated", "DADS treated"))
+dads_5asv_16S.ps@sam_data$Treatment <- factor(dads_5asv_16S.ps@sam_data$Treatment, levels = c("untreated", "DADS_treated"), labels = c("Mock-treated", "DADS treated"))
+dads_5asv_rps10.ps@sam_data$Treatment <- factor(dads_5asv_rps10.ps@sam_data$Treatment, levels = c("untreated", "DADS_treated"), labels = c("Mock-treated", "DADS treated"))
+
+dads_5asv_its.ps@sam_data$Soil <- factor(dads_5asv_its.ps@sam_data$Soil, levels = c("madras", "tulelake"), labels = c("Madras", "Tulelake"))
+dads_5asv_16S.ps@sam_data$Soil <- factor(dads_5asv_16S.ps@sam_data$Soil, levels = c("madras", "tulelake"), labels = c("Madras", "Tulelake"))
+dads_5asv_rps10.ps@sam_data$Soil <- factor(dads_5asv_rps10.ps@sam_data$Soil, levels = c("madras", "tulelake"), labels = c("Madras", "Tulelake"))
+
+#Any way to rename Soil factor as Location? 
+#instead of dads_5asv_its.ps@sam_data$Soil I want dads_5asv_its.ps@sam_data$Location
+dads_5asv_its.ps@sam_data$Location <- dads_5asv_its.ps@sam_data$Soil
+dads_5asv_16S.ps@sam_data$Location <- dads_5asv_16S.ps@sam_data$Soil
+dads_5asv_rps10.ps@sam_data$Location <- dads_5asv_rps10.ps@sam_data$Soil
 ```
 
 ### Let's calculate alpha diversity metrics for ITS dataset
@@ -686,7 +701,7 @@ relative_eig <- ps_NMDS_its$values$Relative_eig
 ordination_df <- data.frame(ps_NMDS_its$points, sample_data(strat_rel_dads_its.ps))
 
 plot_its_trt <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Treatment)) +
-  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.05, height = 0.05)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
   labs(x = "NMDS1",
        y = "NMDS2", 
        fill = "Treatment") +
@@ -709,7 +724,7 @@ plot_its_trt <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Treatment))
 print(plot_its_trt)
 
 plot_its_inc <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Incubation)) +
-  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.05, height = 0.05)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
   labs(x = "NMDS1",
        y = "NMDS2", 
        fill = "Incubation") +
@@ -732,10 +747,10 @@ print(plot_its_inc)
 
 
 plot_its_soil <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Soil)) +
-  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.05, height = 0.05)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
   labs(x = "NMDS1",
        y = "NMDS2", 
-       fill = "Treatment") +
+       fill = "Soil") +
   #scale_x_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limits = c(-0.5, 0.5)) +
   #scale_y_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limits = c(-0.5, 0.5)) +
   guides(fill = guide_legend(nrow = 2)) +
@@ -752,6 +767,26 @@ plot_its_soil <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Soil)) +
         legend.spacing.y = unit(0.2, "cm"))
 
 print(plot_its_soil)
+
+plot_its_location <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Location)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
+  labs(x = "NMDS1",
+       y = "NMDS2", 
+       fill = "Location") +
+  #scale_x_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limrps10 = c(-0.5, 0.5)) +
+  #scale_y_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limrps10 = c(-0.5, 0.5)) +
+  guides(fill = guide_legend(nrow = 2)) +
+  theme_bw() +
+  theme(axis.text = element_text(size = 14, family = "Arial"), 
+        axis.title = element_text(size = 14, family = "Arial"), 
+        title = element_text(size = 14, family = "Arial"), 
+        legend.text = element_text(size = 14, family = "Arial"),
+        legend.position = "bottom", 
+        legend.margin = margin(0, 0, 0, 0),  
+        legend.box.margin = margin(0, 0, 0, 0),  
+        legend.key.size = unit(0.4, "lines"), 
+        legend.spacing.x = unit(0.2, "cm"),   
+        legend.spacing.y = unit(0.2, "cm"))
 ```
 
 
@@ -769,7 +804,7 @@ relative_eig <- ps_NMDS_16S$values$Relative_eig
 ordination_df <- data.frame(ps_NMDS_16S$points, sample_data(strat_rel_dads_16S.ps))
 
 plot_16S_trt <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Treatment)) +
-  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.05, height = 0.05)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
   labs(x = "NMDS1",
        y = "NMDS2", 
        fill = "Treatment") +
@@ -792,7 +827,7 @@ plot_16S_trt <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Treatment))
 print(plot_16S_trt)
 
 plot_16S_inc <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Incubation)) +
-  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.05, height = 0.05)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
   labs(x = "NMDS1",
        y = "NMDS2", 
        fill = "Incubation") +
@@ -815,10 +850,10 @@ print(plot_16S_inc)
 
 
 plot_16S_soil <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Soil)) +
-  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.05, height = 0.05)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
   labs(x = "NMDS1",
        y = "NMDS2", 
-       fill = "Treatment") +
+       fill = "Soil") +
   #scale_x_continuous(breaks = seq(-0.5, 0.5, by = 0.5), lim16S = c(-0.5, 0.5)) +
   #scale_y_continuous(breaks = seq(-0.5, 0.5, by = 0.5), lim16S = c(-0.5, 0.5)) +
   guides(fill = guide_legend(nrow = 2)) +
@@ -835,6 +870,26 @@ plot_16S_soil <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Soil)) +
         legend.spacing.y = unit(0.2, "cm"))
 
 print(plot_16S_soil)
+
+plot_16S_location <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Location)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
+  labs(x = "NMDS1",
+       y = "NMDS2", 
+       fill = "Location") +
+  #scale_x_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limrps10 = c(-0.5, 0.5)) +
+  #scale_y_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limrps10 = c(-0.5, 0.5)) +
+  guides(fill = guide_legend(nrow = 2)) +
+  theme_bw() +
+  theme(axis.text = element_text(size = 14, family = "Arial"), 
+        axis.title = element_text(size = 14, family = "Arial"), 
+        title = element_text(size = 14, family = "Arial"), 
+        legend.text = element_text(size = 14, family = "Arial"),
+        legend.position = "bottom", 
+        legend.margin = margin(0, 0, 0, 0),  
+        legend.box.margin = margin(0, 0, 0, 0),  
+        legend.key.size = unit(0.4, "lines"), 
+        legend.spacing.x = unit(0.2, "cm"),   
+        legend.spacing.y = unit(0.2, "cm"))
 ```
 
 ### Let's proceed with ordination for the RPS10 dataset-NMDS
@@ -851,7 +906,7 @@ relative_eig <- ps_NMDS_rps10$values$Relative_eig
 ordination_df <- data.frame(ps_NMDS_rps10$points, sample_data(strat_rel_dads_rps10.ps))
 
 plot_rps10_trt <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Treatment)) +
-  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.05, height = 0.05)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
   labs(x = "NMDS1",
        y = "NMDS2", 
        fill = "Treatment") +
@@ -874,7 +929,7 @@ plot_rps10_trt <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Treatment
 print(plot_rps10_trt)
 
 plot_rps10_inc <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Incubation)) +
-  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.05, height = 0.05)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
   labs(x = "NMDS1",
        y = "NMDS2", 
        fill = "Incubation") +
@@ -897,10 +952,10 @@ print(plot_rps10_inc)
 
 
 plot_rps10_soil <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Soil)) +
-  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.05, height = 0.05)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
   labs(x = "NMDS1",
        y = "NMDS2", 
-       fill = "Treatment") +
+       fill = "Soil") +
   #scale_x_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limrps10 = c(-0.5, 0.5)) +
   #scale_y_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limrps10 = c(-0.5, 0.5)) +
   guides(fill = guide_legend(nrow = 2)) +
@@ -917,6 +972,26 @@ plot_rps10_soil <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Soil)) +
         legend.spacing.y = unit(0.2, "cm"))
 
 print(plot_rps10_soil)
+
+plot_rps10_location <- ggplot(ordination_df, aes(x = MDS1, y = MDS2, fill = Location)) +
+  geom_point(size = 4, shape = 21, color = "black", stroke = 0.5, position = position_jitter(width = 0.035, height = 0.035)) +
+  labs(x = "NMDS1",
+       y = "NMDS2", 
+       fill = "Location") +
+  #scale_x_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limrps10 = c(-0.5, 0.5)) +
+  #scale_y_continuous(breaks = seq(-0.5, 0.5, by = 0.5), limrps10 = c(-0.5, 0.5)) +
+  guides(fill = guide_legend(nrow = 2)) +
+  theme_bw() +
+  theme(axis.text = element_text(size = 14, family = "Arial"), 
+        axis.title = element_text(size = 14, family = "Arial"), 
+        title = element_text(size = 14, family = "Arial"), 
+        legend.text = element_text(size = 14, family = "Arial"),
+        legend.position = "bottom", 
+        legend.margin = margin(0, 0, 0, 0),  
+        legend.box.margin = margin(0, 0, 0, 0),  
+        legend.key.size = unit(0.4, "lines"), 
+        legend.spacing.x = unit(0.2, "cm"),   
+        legend.spacing.y = unit(0.2, "cm"))
 ```
 
 ### Let's combine plots into facetted plot
@@ -935,21 +1010,21 @@ create_column <- function(ord_plot) {
 }
 # Create columns for each dataset and factor with adjusted spacing
 col_16S_treatment <- create_column(plot_16S_trt)
-col_16S_soil <- create_column(plot_16S_soil)
+col_16S_location <- create_column(plot_16S_location)
 col_16S_incubation <- create_column(plot_16S_inc)
 col_its_treatment <- create_column(plot_its_trt)
-col_its_soil <- create_column(plot_its_soil)
+col_its_location <- create_column(plot_its_location)
 col_its_incubation <- create_column(plot_its_inc)
 col_rps10_treatment <- create_column(plot_rps10_trt)
-col_rps10_soil <- create_column(plot_rps10_soil)
+col_rps10_location <- create_column(plot_rps10_location)
 col_rps10_incubation <- create_column(plot_rps10_inc)
 
 # Create row plots with labels and adjusted spacing
-row_16S <- plot_grid(col_16S_treatment, col_16S_soil, col_16S_incubation, 
+row_16S <- plot_grid(col_16S_treatment, col_16S_location, col_16S_incubation, 
                      ncol = 3, labels = "A.", label_size = 20, label_x =  -0.01, label_y = 1.02, hjust = -0.5, vjust = 2, rel_widths = c(1, 1, 1))
-row_its <- plot_grid(col_its_treatment, col_its_soil, col_its_incubation, 
+row_its <- plot_grid(col_its_treatment, col_its_location, col_its_incubation, 
                      ncol = 3, labels = "B.", label_size = 20, label_x =  -0.01, label_y = 1.02, hjust = -0.5, vjust = 2, rel_widths = c(1, 1, 1))
-row_rps10 <- plot_grid(col_rps10_treatment, col_rps10_soil, col_rps10_incubation, 
+row_rps10 <- plot_grid(col_rps10_treatment, col_rps10_location, col_rps10_incubation, 
                        ncol = 3, labels = "C.", label_size = 20, label_x =  -0.01, label_y = 1.02, hjust = -0.5, vjust = 2, rel_widths = c(1, 1, 1))
 
 
